@@ -1,4 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-neumo-bg: var(--neumo-bg);
+  --color-neumo-text: var(--neumo-text);
+  --color-neumo-subtext: var(--neumo-subtext);
+  --color-neumo-card: var(--neumo-card);
+  --color-neumo-accent: var(--accent-color);
+}
 
 :root {
   --neumo-bg: #e8edf2;
