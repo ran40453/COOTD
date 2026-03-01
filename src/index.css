@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --neumo-bg: #e8edf2;
+  --neumo-bg-rgb: 232 237 242;
+  --neumo-text: #1a1a2e;
+  --neumo-subtext: #7c8db0;
+  --neumo-card: #e8edf2;
+  --accent-color: #8b5cf6;
+  --accent-color-rgb: 139 92 246;
+
+  --shadow-light: #ffffff;
+  --shadow-dark: #c5cad3;
+  --shadow-flat: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+  --shadow-pressed: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+  --shadow-floating: 12px 12px 30px var(--shadow-dark), -12px -12px 30px var(--shadow-light);
+}
+
+.dark {
+  --neumo-bg: #1a1a2e;
+  --neumo-bg-rgb: 26 26 46;
+  --neumo-text: #e8edf2;
+  --neumo-subtext: #7c8db0;
+  --neumo-card: #1e1e34;
+  --shadow-light: #222240;
+  --shadow-dark: #12121e;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--neumo-bg);
+  color: var(--neumo-text);
+  line-height: 1.4;
+  transition: background 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Neumorphic Design Tokens */
+.neumo-card {
+  background: var(--neumo-card);
+  box-shadow: var(--shadow-flat);
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+}
+
+.neumo-btn {
+  background: var(--neumo-bg);
+  box-shadow: var(--shadow-flat);
+  border: none;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.neumo-btn:active,
+.neumo-btn-active {
+  box-shadow: var(--shadow-pressed);
+}
+
+.neumo-icon-btn {
+  background: var(--neumo-bg);
+  box-shadow: var(--shadow-flat);
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.neumo-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--neumo-bg);
+  box-shadow: var(--shadow-pressed);
+  border: none;
+  border-radius: 0.75rem;
+  color: var(--neumo-text);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.neumo-input::placeholder {
+  color: var(--neumo-subtext);
+  font-weight: 500;
+}
+
+.neumo-input:focus {
+  box-shadow: var(--shadow-pressed), 0 0 0 2px rgba(var(--accent-color-rgb), 0.3);
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(var(--neumo-bg-rgb), 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(var(--neumo-bg-rgb), 0.3);
+}
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--neumo-subtext); border-radius: 4px; opacity: 0.3; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease forwards;
+}
+
+/* Text utilities */
+.text-neumo-text { color: var(--neumo-text); }
+.text-neumo-subtext { color: var(--neumo-subtext); }
+.text-neumo-accent { color: var(--accent-color); }
+.bg-neumo-bg { background: var(--neumo-bg); }
+.bg-neumo-card { background: var(--neumo-card); }
+.bg-neumo-accent { background: var(--accent-color); }
+.shadow-neumo-flat { box-shadow: var(--shadow-flat); }
+.shadow-neumo-pressed { box-shadow: var(--shadow-pressed); }
+.shadow-neumo-floating { box-shadow: var(--shadow-floating); }
+
+/* Category colors */
+.cat-tops { color: #6366f1; }
+.cat-bottoms { color: #0ea5e9; }
+.cat-shoes { color: #f97316; }
+.cat-accessories { color: #ec4899; }
+.cat-outerwear { color: #14b8a6; }
+.cat-underwear { color: #a855f7; }
+
+/* Photo cards */
+.photo-card {
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  width: 100%;
+}
