@@ -16,9 +16,26 @@ const ClosetPage = ({ data, onUpdate, t, language, onAddClick }) => {
         return cat[language] || cat.en;
     };
 
+    const filtered = useMemo(() => {
+        let list = [...closet];
+        if (filterCat !== 'all') {
+            list = list.filter(i => i.category === filterCat);
+        }
+        if (search.trim()) {
+            const s = search.toLowerCase();
+            list = list.filter(i =>
+                (i.name || '').toLowerCase().includes(s) ||
+                (i.brand || '').toLowerCase().includes(s) ||
+                (i.notes || '').toLowerCase().includes(s)
+            );
+        }
+        return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }, [closet, filterCat, search]);
+
     const groups = useMemo(() => {
         const g = {};
         filtered.forEach(item => {
+            if (!item || !item.category) return;
             if (!g[item.category]) g[item.category] = [];
             g[item.category].push(item);
         });
@@ -146,7 +163,13 @@ const ClosetPage = ({ data, onUpdate, t, language, onAddClick }) => {
                                     </div>
                                 )}
                                 <div className="flex gap-2 pt-2">
-                                    <button onClick={() => handleDelete(selectedItem.id)} className="flex-1 neumo-btn py-3 text-red-500 text-xs font-black flex items-center justify-center gap-2">
+                                    <button onClick={() => {
+                                        if (window.confirm(t('confirm_delete'))) {
+                                            const newData = { ...data, closet: closet.filter(i => i.id !== selectedItem.id) };
+                                            onUpdate(newData);
+                                            setSelectedItem(null);
+                                        }
+                                    }} className="flex-1 neumo-btn py-3 text-red-500 text-xs font-black flex items-center justify-center gap-2">
                                         <Trash2 size={14} /> {t('delete')}
                                     </button>
                                     <button onClick={() => setSelectedItem(null)} className="flex-1 neumo-btn py-3 text-neumo-subtext text-xs font-black flex items-center justify-center gap-2">

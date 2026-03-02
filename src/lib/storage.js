@@ -26,7 +26,13 @@ export const fetchGistData = async () => {
     const gist = await res.json();
     const file = gist.files?.[GIST_FILENAME];
     if (!file) return { ...INITIAL_DATA_TEMPLATE };
-    return JSON.parse(file.content);
+    try {
+        const parsed = JSON.parse(file.content);
+        return sanitizeData(parsed);
+    } catch (e) {
+        console.error('Data parse error:', e);
+        return { ...INITIAL_DATA_TEMPLATE };
+    }
 };
 
 export const updateGistData = async (data) => {
