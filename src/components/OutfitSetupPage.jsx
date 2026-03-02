@@ -20,18 +20,17 @@ const BODY_ZONES = {
     bags: { top: '40%', left: '82%', width: '22%' },
 };
 
-const OutfitSetupPage = ({ data, onUpdate, t, language, onSaveOutfit }) => {
+const OutfitSetupPage = ({ data, onUpdate, t, language, globalCategory, onSaveOutfit }) => {
     const [equipped, setEquipped] = useState({});
-    const [filterCat, setFilterCat] = useState('all');
     const gender = data?.settings?.gender || 'female';
 
     const closet = data?.closet || [];
 
     const filteredItems = useMemo(() => {
         let items = closet;
-        if (filterCat !== 'all') items = items.filter(i => i.category === filterCat);
+        if (globalCategory !== 'all') items = items.filter(i => i.category === globalCategory);
         return items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    }, [closet, filterCat]);
+    }, [closet, globalCategory]);
 
     const toggleEquip = (item) => {
         setEquipped(prev => {

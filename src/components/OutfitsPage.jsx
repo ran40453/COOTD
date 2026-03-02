@@ -3,13 +3,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Trash2, X, FolderOpen, Palette, Bookmark } from 'lucide-react';
 import { CATEGORIES } from '../lib/translations';
 
-const OutfitsPage = ({ data, onUpdate, t, language }) => {
+const OutfitsPage = ({ data, onUpdate, t, language, globalCategory }) => {
     const [search, setSearch] = useState('');
-    const [filterCat, setFilterCat] = useState('all');
     const [selectedOutfit, setSelectedOutfit] = useState(null);
 
     const outfits = data?.outfits || [];
     const closet = data?.closet || [];
+
+    const filteredOutfits = useMemo(() => {
+        let list = [...outfits];
+        if (globalCategory !== 'all') {
+            list = list.filter(o => (o.items || []).some(id => {
+                const item = closet.find(c => c.id === id);
+                return item?.category === globalCategory;
+            }));
+        }
+        if (search.trim()) {
+            const s = search.toLowerCase();
+            list = list.filter(o =>
+                (o.name || '').toLowerCase().includes(s) ||
+                (o.folder || '').toLowerCase().includes(s)
+            );
+        }
+        return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }, [outfits, globalCategory, search, closet]);
 
     const groups = useMemo(() => {
         const g = { today: [], thisWeek: [], thisMonth: [], older: [] };
@@ -19,7 +36,7 @@ const OutfitsPage = ({ data, onUpdate, t, language }) => {
         startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        filtered.forEach(o => {
+        filteredOutfits.forEach(o => {
             const d = new Date(o.createdAt || o.date || 0);
             if (d >= startOfDay) g.today.push(o);
             else if (d >= startOfWeek) g.thisWeek.push(o);
@@ -27,7 +44,7 @@ const OutfitsPage = ({ data, onUpdate, t, language }) => {
             else g.older.push(o);
         });
         return g;
-    }, [filtered]);
+    }, [filteredOutfits]);
 
     return (
         <div className="animate-fade-in pb-28 px-4 pt-2 overflow-y-auto h-full custom-scrollbar">
@@ -37,20 +54,8 @@ const OutfitsPage = ({ data, onUpdate, t, language }) => {
                 <input className="neumo-input pl-12 h-12 text-sm" placeholder={t('search')} value={search} onChange={e => setSearch(e.target.value)} />
             </div>
 
-            {/* Category Filter */}
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-4 mb-6 px-1">
-                <button onClick={() => setFilterCat('all')} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat ${filterCat === 'all' ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}>
-                    {t('all')}
-                </button>
-                {CATEGORIES.map(cat => (
-                    <button key={cat.id} onClick={() => setFilterCat(cat.id)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat ${filterCat === cat.id ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}>
-                        {cat[language] || cat.en}
-                    </button>
-                ))}
-            </div>
-
             {/* Grouped Sections */}
-            {filtered.length === 0 ? (
+            {filteredOutfits.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-neumo-subtext">
                     <div className="w-20 h-20 rounded-3xl neumo-card flex items-center justify-center mb-4 opacity-50">
                         <Bookmark size={40} className="text-neumo-accent" />

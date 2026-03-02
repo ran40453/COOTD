@@ -9,7 +9,7 @@ import OutfitSaveModal from './components/OutfitSaveModal';
 import OutfitsPage from './components/OutfitsPage';
 import SettingsPage from './components/SettingsPage';
 import { fetchGistData, updateGistData, getStorageCredentials, INITIAL_DATA_TEMPLATE, sanitizeData } from './lib/storage';
-import { translations } from './lib/translations';
+import { translations, CATEGORIES } from './lib/translations';
 import './index.css';
 
 function App() {
@@ -20,6 +20,7 @@ function App() {
   const [showAddItem, setShowAddItem] = useState(false);
   const [showOutfitSave, setShowOutfitSave] = useState(false);
   const [equippedForSave, setEquippedForSave] = useState({});
+  const [globalCategory, setGlobalCategory] = useState('all');
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('cootd_theme');
@@ -81,6 +82,13 @@ function App() {
     setShowOutfitSave(true);
   };
 
+  const gender = data?.settings?.gender || 'female';
+  const toggleGender = async () => {
+    const nextG = gender === 'female' ? 'male' : 'female';
+    const newData = { ...data, settings: { ...data.settings, gender: nextG } };
+    await handleUpdate(newData);
+  };
+
   const renderContent = () => {
     if (!isAuthenticated && activeTab !== 'settings') {
       return (
@@ -100,15 +108,15 @@ function App() {
 
     switch (activeTab) {
       case 'closet':
-        return <ClosetPage data={data} onUpdate={handleUpdate} t={t} language={language} onAddClick={() => setShowAddItem(true)} />;
+        return <ClosetPage data={data} onUpdate={handleUpdate} t={t} language={language} globalCategory={globalCategory} onAddClick={() => setShowAddItem(true)} />;
       case 'outfit':
-        return <OutfitSetupPage data={data} onUpdate={handleUpdate} t={t} language={language} onSaveOutfit={handleSaveOutfit} />;
+        return <OutfitSetupPage data={data} onUpdate={handleUpdate} t={t} language={language} globalCategory={globalCategory} onSaveOutfit={handleSaveOutfit} />;
       case 'outfits':
-        return <OutfitsPage data={data} onUpdate={handleUpdate} t={t} language={language} />;
+        return <OutfitsPage data={data} onUpdate={handleUpdate} t={t} language={language} globalCategory={globalCategory} />;
       case 'settings':
         return <SettingsPage data={data} onUpdate={handleUpdate} language={language} onLanguageChange={changeLanguage} isDarkMode={isDarkMode} toggleTheme={toggleTheme} t={t} />;
       default:
-        return <ClosetPage data={data} onUpdate={handleUpdate} t={t} language={language} />;
+        return <ClosetPage data={data} onUpdate={handleUpdate} t={t} language={language} globalCategory={globalCategory} />;
     }
   };
 
@@ -121,41 +129,72 @@ function App() {
   ];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ background: 'var(--neumo-bg)' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-2 flex-shrink-0">
-        <div>
-          <h1 className="text-2xl font-black text-neumo-text tracking-tighter">COOTD</h1>
-          <p className="text-[8px] font-bold text-neumo-subtext uppercase tracking-[0.3em]">Closet Outfit Of The Day</p>
-        </div>
-      </div>
+    <div className="h-full w-full flex justify-center bg-black/5 dark:bg-black/40">
+      <div className="w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative shadow-2xl" id="mobile-container" style={{ background: 'var(--neumo-bg)' }}>
 
-      {/* Content */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="h-full"
-          >
-            {renderContent()}
-          </motion.div>
+        {/* Header & Global Filters */}
+        <div className="flex-none bg-neumo-bg/80 backdrop-blur-md z-40 border-b border-white/20 dark:border-white/5 pb-2">
+          <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            <div>
+              <h1 className="text-2xl font-black text-neumo-text tracking-tighter">COOTD</h1>
+              <p className="text-[8px] font-bold text-neumo-subtext uppercase tracking-[0.3em]">OOTD Manager</p>
+            </div>
+            {isAuthenticated && (
+              <button onClick={toggleGender} className="neumo-btn px-4 py-1.5 text-[10px] font-black uppercase text-neumo-accent tracking-widest">
+                {t(gender)}
+              </button>
+            )}
+          </div>
+
+          {/* Global Category Filter (Hidden in Settings/Add) */}
+          {isAuthenticated && activeTab !== 'settings' && activeTab !== '__add__' && (
+            <div className="flex gap-2 overflow-x-auto no-scrollbar px-5 pt-1 pb-1">
+              <button
+                onClick={() => setGlobalCategory('all')}
+                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${globalCategory === 'all' ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
+              >
+                {t('all')}
+              </button>
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setGlobalCategory(cat.id)}
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${globalCategory === cat.id ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
+                >
+                  {cat[language] || cat.en}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-h-0 overflow-hidden relative z-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="h-full"
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Tabbar */}
+        <Tabbar activeTab={activeTab} onChange={setActiveTab} tabs={tabs} onAddClick={() => setShowAddItem(true)} />
+
+        {/* Modals */}
+        <AnimatePresence>
+          {showAddItem && <AddItemModal isOpen={showAddItem} onClose={() => setShowAddItem(false)} data={data} onUpdate={handleUpdate} t={t} language={language} />}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showOutfitSave && <OutfitSaveModal isOpen={showOutfitSave} onClose={() => setShowOutfitSave(false)} equippedItems={equippedForSave} data={data} onUpdate={handleUpdate} t={t} />}
         </AnimatePresence>
       </div>
-
-      {/* Tabbar */}
-      <Tabbar activeTab={activeTab} onChange={setActiveTab} tabs={tabs} onAddClick={() => setShowAddItem(true)} />
-
-      {/* Modals */}
-      <AnimatePresence>
-        {showAddItem && <AddItemModal isOpen={showAddItem} onClose={() => setShowAddItem(false)} data={data} onUpdate={handleUpdate} t={t} language={language} />}
-      </AnimatePresence>
-      <AnimatePresence>
-        {showOutfitSave && <OutfitSaveModal isOpen={showOutfitSave} onClose={() => setShowOutfitSave(false)} equippedItems={equippedForSave} data={data} onUpdate={handleUpdate} t={t} />}
-      </AnimatePresence>
     </div>
   );
 }

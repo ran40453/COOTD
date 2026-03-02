@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Edit2, Trash2, X, Shirt } from 'lucide-react';
 import { CATEGORIES } from '../lib/translations';
 
-const ClosetPage = ({ data, onUpdate, t, language, onAddClick }) => {
+const ClosetPage = ({ data, onUpdate, t, language, globalCategory, onAddClick }) => {
     const [search, setSearch] = useState('');
-    const [filterCat, setFilterCat] = useState('all');
     const [selectedItem, setSelectedItem] = useState(null);
 
     const closet = data?.closet || [];
@@ -53,25 +52,6 @@ const ClosetPage = ({ data, onUpdate, t, language, onAddClick }) => {
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                 />
-            </div>
-
-            {/* Category Quick Filter */}
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-4 mb-6 px-1">
-                <button
-                    onClick={() => setFilterCat('all')}
-                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${filterCat === 'all' ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
-                >
-                    {t('all')}
-                </button>
-                {CATEGORIES.map(cat => (
-                    <button
-                        key={cat.id}
-                        onClick={() => setFilterCat(cat.id)}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${filterCat === cat.id ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
-                    >
-                        {cat[language] || cat.en}
-                    </button>
-                ))}
             </div>
 
             {/* Categorized Sections */}
