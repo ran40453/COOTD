@@ -16,45 +16,33 @@ const ClosetPage = ({ data, onUpdate, t, language, onAddClick }) => {
         return cat[language] || cat.en;
     };
 
-    const filtered = useMemo(() => {
-        let list = [...closet];
-        if (filterCat !== 'all') list = list.filter(i => i.category === filterCat);
-        if (search.trim()) {
-            const s = search.toLowerCase();
-            list = list.filter(i =>
-                (i.name || '').toLowerCase().includes(s) ||
-                (i.brand || '').toLowerCase().includes(s) ||
-                (i.tags || []).some(t => t.toLowerCase().includes(s))
-            );
-        }
-        return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    }, [closet, filterCat, search]);
-
-    const handleDelete = async (id) => {
-        if (!confirm(t('confirm_delete'))) return;
-        const newData = { ...data, closet: closet.filter(i => i.id !== id) };
-        await onUpdate(newData);
-        setSelectedItem(null);
-    };
+    const groups = useMemo(() => {
+        const g = {};
+        filtered.forEach(item => {
+            if (!g[item.category]) g[item.category] = [];
+            g[item.category].push(item);
+        });
+        return g;
+    }, [filtered]);
 
     return (
         <div className="animate-fade-in pb-28 px-4 pt-2 overflow-y-auto h-full custom-scrollbar">
             {/* Search */}
-            <div className="relative mb-4">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neumo-subtext" />
+            <div className="relative mb-6">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neumo-subtext" />
                 <input
-                    className="neumo-input pl-10 h-10 text-xs"
+                    className="neumo-input pl-12 h-12 text-sm"
                     placeholder={t('search')}
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                 />
             </div>
 
-            {/* Category Filter */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-4">
+            {/* Category Quick Filter */}
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-4 mb-6 px-1">
                 <button
                     onClick={() => setFilterCat('all')}
-                    className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${filterCat === 'all' ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
+                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${filterCat === 'all' ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
                 >
                     {t('all')}
                 </button>
@@ -62,52 +50,66 @@ const ClosetPage = ({ data, onUpdate, t, language, onAddClick }) => {
                     <button
                         key={cat.id}
                         onClick={() => setFilterCat(cat.id)}
-                        className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${filterCat === cat.id ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all shadow-neumo-flat active:shadow-neumo-pressed ${filterCat === cat.id ? 'bg-neumo-accent text-white' : 'bg-neumo-bg text-neumo-text'}`}
                     >
                         {cat[language] || cat.en}
                     </button>
                 ))}
             </div>
 
-            {/* Grid */}
-            {filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neumo-subtext">
-                    <Shirt size={48} className="opacity-20 mb-3" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest">{t('no_items')}</p>
+            {/* Categorized Sections */}
+            {Object.keys(groups).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-neumo-subtext">
+                    <div className="w-20 h-20 rounded-3xl neumo-card flex items-center justify-center mb-4 opacity-50">
+                        <Shirt size={40} className="text-neumo-accent" />
+                    </div>
+                    <p className="text-[11px] font-black uppercase tracking-widest">{t('no_items')}</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    <AnimatePresence>
-                        {filtered.map(item => (
-                            <motion.div
-                                key={item.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                className="neumo-card overflow-hidden cursor-pointer group hover:shadow-neumo-pressed transition-all"
-                                onClick={() => setSelectedItem(item)}
-                            >
-                                <div className="aspect-[3/4] bg-neumo-bg overflow-hidden">
-                                    {item.photoOriginal ? (
-                                        <img src={item.photoOriginal} alt={item.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Shirt size={32} className="text-neumo-subtext opacity-30" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-2.5">
-                                    <p className="text-xs font-black text-neumo-text truncate">{item.name}</p>
-                                    <div className="flex items-center justify-between mt-1">
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-neumo-accent">{getCatLabel(item.category)}</span>
-                                        {item.brand && <span className="text-[8px] font-bold text-neumo-subtext truncate ml-1">{item.brand}</span>}
-                                    </div>
-                                    {item.price && <p className="text-[9px] font-bold text-neumo-subtext mt-0.5">¥{item.price}</p>}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                <div className="space-y-8">
+                    {CATEGORIES.filter(cat => groups[cat.id]).map(cat => (
+                        <div key={cat.id} className="space-y-4">
+                            <div className="flex items-center gap-3 ml-1">
+                                <div className="w-2 h-2 rounded-full bg-neumo-accent" />
+                                <h3 className="text-xs font-black text-neumo-text uppercase tracking-widest">{cat[language] || cat.en}</h3>
+                                <span className="text-[10px] font-black text-neumo-accent/60">{groups[cat.id].length}</span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <AnimatePresence mode="popLayout">
+                                    {groups[cat.id].map(item => (
+                                        <motion.div
+                                            key={item.id}
+                                            layout
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            className="neumo-card p-2 group cursor-pointer hover:shadow-neumo-pressed transition-all active:scale-[0.98]"
+                                            onClick={() => setSelectedItem(item)}
+                                        >
+                                            <div className="aspect-[3/4] bg-neumo-bg/50 rounded-xl overflow-hidden relative">
+                                                {item.photoOriginal ? (
+                                                    <img src={item.photoOriginal} alt={item.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <Shirt size={28} className="text-neumo-subtext opacity-20" />
+                                                    </div>
+                                                )}
+                                                {/* Premium Overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                            <div className="px-1 py-2">
+                                                <div className="flex items-start justify-between gap-1">
+                                                    <p className="text-[11px] font-black text-neumo-text truncate leading-tight flex-1">{item.name}</p>
+                                                    {item.brand && <span className="text-[8px] font-black text-neumo-accent uppercase opacity-70 flex-shrink-0">{item.brand}</span>}
+                                                </div>
+                                                <p className="text-[9px] font-bold text-neumo-subtext mt-0.5 truncate">{item.notes || '-'}</p>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
