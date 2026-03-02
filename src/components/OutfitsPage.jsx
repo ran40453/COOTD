@@ -11,21 +11,21 @@ const OutfitsPage = ({ data, onUpdate, t, language, globalCategory }) => {
     const closet = data?.closet || [];
 
     const filteredOutfits = useMemo(() => {
-        let list = [...outfits];
+        let list = [...outfits].filter(Boolean);
         if (globalCategory !== 'all') {
-            list = list.filter(o => (o.items || []).some(id => {
-                const item = closet.find(c => c.id === id);
+            list = list.filter(o => (o?.items || []).some(id => {
+                const item = closet.find(c => c?.id === id);
                 return item?.category === globalCategory;
             }));
         }
         if (search.trim()) {
             const s = search.toLowerCase();
             list = list.filter(o =>
-                (o.name || '').toLowerCase().includes(s) ||
-                (o.folder || '').toLowerCase().includes(s)
+                (o?.name || '').toLowerCase().includes(s) ||
+                (o?.folder || '').toLowerCase().includes(s)
             );
         }
-        return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        return list.sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0));
     }, [outfits, globalCategory, search, closet]);
 
     const groups = useMemo(() => {
