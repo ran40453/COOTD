@@ -16,20 +16,20 @@ const ClosetPage = ({ data, onUpdate, t, language, globalCategory, onAddClick })
     };
 
     const filtered = useMemo(() => {
-        let list = [...closet];
-        if (filterCat !== 'all') {
-            list = list.filter(i => i.category === filterCat);
+        let list = [...closet].filter(Boolean); // Safety filter
+        if (globalCategory !== 'all') {
+            list = list.filter(i => i?.category === globalCategory);
         }
         if (search.trim()) {
             const s = search.toLowerCase();
             list = list.filter(i =>
-                (i.name || '').toLowerCase().includes(s) ||
-                (i.brand || '').toLowerCase().includes(s) ||
-                (i.notes || '').toLowerCase().includes(s)
+                (i?.name || '').toLowerCase().includes(s) ||
+                (i?.brand || '').toLowerCase().includes(s) ||
+                (i?.notes || '').toLowerCase().includes(s)
             );
         }
-        return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    }, [closet, filterCat, search]);
+        return list.sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0));
+    }, [closet, globalCategory, search]);
 
     const groups = useMemo(() => {
         const g = {};
